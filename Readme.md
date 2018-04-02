@@ -1,7 +1,7 @@
-# Личный проект «Кексобукинг» [![Build status][travis-image]][travis-url]
+﻿# Личный проект «Кексобукинг» [![Build status][travis-image]][travis-url]
 
 * Студент: [Yuliia Shylo](https://up.htmlacademy.ru/javascript/13/user/67126).
-* Наставник: `Неизвестно`.
+* Наставник: `Александр Сушко`.
 
 ---
 
