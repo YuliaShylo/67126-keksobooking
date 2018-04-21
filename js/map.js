@@ -2,7 +2,7 @@
 
 var PIN_SIZE = 40;
 
-var TITLE = [
+var TITLES = [
   'Большая уютная квартира',
   'Маленькая неуютная квартира',
   'Огромный прекрасный дворец',
@@ -13,12 +13,18 @@ var TITLE = [
   'Неуютное бунгало по колено в воде'
 ];
 
-var TYPE = [
-  {palace: 'Дворец'},
-  {flat: 'Квартира'},
-  {house: 'Дом'},
-  {bungalo: 'Бунгало'}
+var placeTypes = [
+  'palace',
+  'flat',
+  'house',
+  'bungalo'
 ];
+var placeNames = {
+  palace: 'Дворец',
+  flat: 'Квартира',
+  house: 'Дом',
+  bungalo: 'Бунгало'
+};
 
 var CHECKIN_CHECKOUT = [
   '12:00',
@@ -60,25 +66,31 @@ var getRandomArrayItem = function(array) {
 var getRandomLenghtArray = function(array) {
   var firstArrayElement = getRandomNumberFromInterval(0, array.length - 1)
   var lastArrayElement = getRandomNumberFromInterval(0, array.length - 1)
-  var arrayRandomLength = array slice(firstArrayElement, lastArrayElement);
-  // ругается отладчик. Синтаксис проверила, что не так?
+  var arrayRandomLength = array.slice(firstArrayElement, lastArrayElement);
   return arrayRandomLength;
 };
+
+// получаем наименование жилья по типу, для type
+
+var getPlaseName = function(array1, array2) {
+  var type = getRandomArrayItem(array1);
+  var name = array2[array1];
+  return name;
+}
 
 var generateObj = function() {
   var array = [];
   for (var i = 0; i < ARRAY_LENGTH; i++) {
     var obj = {};
-    var imageNumber = getRandomNumberFromInterval(1, 8);
-    obj.author.avatar = 'img/avatars/user' + '0' +imageNumber + '.png';
-    // должно быть число с ведущим нулем, 01, 02 и т.д.
-    // не знаю как иначе записать
-    obj.offer.title = getRandomArrayItem(TITLE);
+    obj.author.avatar = 'img/avatars/user' + '0' + i + '.png';
+    // Да, забыла. Когда i будет двузначным?
+    // В интернетах не нашла кроме моего варината
+    obj.offer.title = getRandomArrayItem(TITLES);
     var xCoordinate = getRandomNumberFromInterval(300, 900);
     var yCoordinate = getRandomNumberFromInterval(150, 500);
-    obj.offer.address = xCoordinate + ', ' yCoordinate;
+    obj.offer.address = xCoordinate + ', ' + yCoordinate;
     obj.offer.price = getRandomNumberFromInterval(1000, 1000000);
-    obj.offer.type = getRandomArrayItem(TYPE);
+    obj.offer.type = getRandomArrayItem(getPlaseName(plaseTypes, placeNames));
     obj.offer.rooms = getRandomNumberFromInterval(1, 5);
     obj.offer.guests = getRandomNumberFromInterval(1, 3);
     obj.offer.checkin = getRandomArrayItem(CHECKIN_CHECKOUT);
@@ -86,8 +98,8 @@ var generateObj = function() {
     obj.offer.features = getRandomLenghtArray(FEATURES);
     //планируется, что в качестве значения будут элементы массива. Я права?
     obj.offer.description = '';
-    var photosCopyArray = PHOTOS slice();
-    obj.offer.photos = photosCopyArray sort();
+    var photosCopyArray = PHOTOS.slice();
+    obj.offer.photos = photosCopyArray.sort();
     obj.location.x = xCoordinate;
     obj.location.y = yCoordinate;
     array.push(obj);
@@ -100,12 +112,14 @@ var advTemplate = document.querySelector('template').content.querySelector('.map
 var generateMarkup = function(array) {
   var markupElement = advTemplate.cloneNode(true);
 
+//   Строка 120: "присвоение значения r-value"
+  // почитала в инете что за r-value, но не поняла.
+  // Косяк с присвоением по всей функции, но что не так я не понимаю
+// и почему в случае строки 116 все в порядке?
   markupElement.querySelector('.popup__title').textContent = array.offer.title;
   markupElement.querySelector('.popup__text--address') = array.offer.address;
   markupElement.querySelector('.popup__text--price') = array.offer.price + '₽/ночь';
   markupElement.querySelector('.popup__type') = array.offer.type;
-  // Как добраться до значения ключа? Задала var TYPE
-  // В задании: В блок .popup__type выведите тип жилья offer.type: Квартира для flat, Бунгало для bungalo, Дом для house, Дворец для palace
   markupElement.querySelector('.popup__text--capacity') = array.offer.rooms + ' комнаты для ' + array.offer.guests + ' гостей';
   markupElement.querySelector('.popup__text--time') = 'Заезд после ' + array.offer.checkin + ', выезд до ' + array.offer.checkout;
   markupElement.querySelector('.popup__features') = array.offer.features;
