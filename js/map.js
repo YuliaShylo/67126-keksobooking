@@ -1,7 +1,5 @@
 // Константы
 
-var PIN_SIZE = 40;
-
 var TITLES = [
   'Большая уютная квартира',
   'Маленькая неуютная квартира',
@@ -10,26 +8,13 @@ var TITLES = [
   'Красивый гостевой домик',
   'Некрасивый негостеприимный домик',
   'Уютное бунгало далеко от моря',
-  'Неуютное бунгало по колено в воде'
+  'Неуютное бунгало по колено в воде',
 ];
-
-var placeTypes = [
-  'palace',
-  'flat',
-  'house',
-  'bungalo'
-];
-var placeNames = {
-  palace: 'Дворец',
-  flat: 'Квартира',
-  house: 'Дом',
-  bungalo: 'Бунгало'
-};
 
 var CHECKIN_CHECKOUT = [
   '12:00',
   '13:00',
-  '14:00'
+  '14:00',
 ];
 
 var FEATURES = [
@@ -38,24 +23,41 @@ var FEATURES = [
   'parking',
   'washer',
   'elevator',
-  'conditioner'
+  'conditioner',
 ];
 
 var PHOTOS = [
   'http://o0.github.io/assets/images/tokyo/hotel1.jpg',
   'http://o0.github.io/assets/images/tokyo/hotel2.jpg',
-  'http://o0.github.io/assets/images/tokyo/hotel3.jpg'
+  'http://o0.github.io/assets/images/tokyo/hotel3.jpg',
 ];
 
-var COORDINATE_LEFT1 = 300;
-var COORDINATE_LEFT2 = 900;
-var COORDINATE_TOP1 = 150;
-var COORDINATE_TOP2 = 500;
+var COORDINATES = {
+  left: 300,
+  right: 900,
+  top: 150,
+  bottom: 500,
+}
 
+var PIN_SIZE = 40;
 
-var ARRAY_LENGTH = 8;
+var OBJECTS_QUANTITY = 8;
 
-// Функции и переменные
+var plaseTypes = [
+  'palace',
+  'flat',
+  'house',
+  'bungalo',
+];
+var placeNames = {
+  palace: 'Дворец',
+  flat: 'Квартира',
+  house: 'Дом',
+  bungalo: 'Бунгало',
+};
+
+var x = getRandomNumberFromInterval(COORDINATES.left, COORDINATES.right);
+var y = getRandomNumberFromInterval(COORDINATES.top, COORDINATES.bottom);
 
 var getRandomNumberFromInterval = function(min, max) {
   var randomNumber = min + Math.random() * (max + 1 - min);
@@ -68,9 +70,12 @@ var getRandomArrayItem = function(array) {
     return array[index];
 };
 
-// получаем координаты
-var xCoordinate = getRandomNumberFromInterval(COORDINATE_LEFT1, COORDINATE_LEFT2);
-var yCoordinate = getRandomNumberFromInterval(COORDINATE_TOP1, COORDINATE_TOP2);
+// функция сортировки элементов массива в случайном порядке
+var getMixedArray = function (a, b, array) {
+  var a = array[i];
+  var b = array[i + 1];
+  return Math.floor(Math.random() - 0.5);
+}
 
 // получаем случайную длину массива, для features
 var getRandomLenghtArray = function(array) {
@@ -87,15 +92,17 @@ var getPlaseName = function(array1, array2) {
   return name;
 }
 
-var generateObj = function() {
+var generateData = function() {
   var array = [];
-  for (var i = 0; i < ARRAY_LENGTH; i++) {
+  for (var i = 0; i < OBJECTS_QUANTITY; i++) {
     var obj = {};
-    obj.author.avatar = 'img/avatars/user' + '0' + (i + 1) + '.png';
-    // Да, забыла. Когда i будет двузначным?
-    // В интернете не нашла кроме моего варината
+    obj.author.avatar =
+      'img/avatars/user' +
+      (i + 1 < 10) ? '0' : '' +
+      (i + 1) +
+      '.png';
     obj.offer.title = getRandomArrayItem(TITLES);
-    obj.offer.address = xCoordinate + ', ' + yCoordinate;
+    obj.offer.address = x + ', ' + y;
     obj.offer.price = getRandomNumberFromInterval(1000, 1000000);
     obj.offer.type = getRandomArrayItem(getPlaseName(plaseTypes, placeNames));
     obj.offer.rooms = getRandomNumberFromInterval(1, 5);
@@ -103,105 +110,81 @@ var generateObj = function() {
     obj.offer.checkin = getRandomArrayItem(CHECKIN_CHECKOUT);
     obj.offer.checkout = getRandomArrayItem(CHECKIN_CHECKOUT);
     obj.offer.features = getRandomLenghtArray(FEATURES);
-    //планируется, что в качестве значения будут элементы массива. Я права?
     obj.offer.description = '';
-
-    // Здесь в offer.photos на каждой итерации будет что?
-    // весь отсортированный массив?
-    var photosCopyArray = PHOTOS.slice();
-    obj.offer.photos = photosCopyArray.sort();
-  /*
-    Мне нужен один случайный элемент этого массива, а на этапе отрисовки я буду добавлять полученный адрес в блок.
-
-    Думаю, должно быть вот так
-    obj.offer.photos = getRandomArrayItem(PHOTOS);
-
-    Вобщем, я слегка запуталась, права я или нет.
-    Плюс смотри ниже этап отрисовки.
-  */
-
-    obj.location.x = xCoordinate;
-    obj.location.y = yCoordinate;
+    obj.offer.photos = PHOTOS.slice().sort(getMixedArray);
+    obj.location.x = x;
+    obj.location.y = y;
     array.push(obj);
   }
   return array;
 };
 
-var advTemplate = document.querySelector('template').content.querySelector('.map__card')
+var markupTemplate = document.querySelector('template').content.querySelector('.map__card')
 
-var generateMarkup = function(array) {
-  var markupElement = advTemplate.cloneNode(true);
+var createCardMarkup = function(obj) {
+  var markupElement = markupTemplate.cloneNode(true);
+  markupElement.querySelector('.popup__title').textContent = obj.offer.title;
+  markupElement.querySelector('.popup__text--address').textContent = obj.offer.address;
+  markupElement.querySelector('.popup__text--price').textContent = obj.offer.price + ' ₽/ночь';
+  markupElement.querySelector('.popup__type').textContent = obj.offer.type;
+  markupElement.querySelector('.popup__text--capacity').textContent = obj.offer.rooms + ' комнаты для ' + obj.offer.guests + ' гостей';
+  markupElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + obj.offer.checkin + ', выезд до ' + obj.offer.checkout;
+  markupElement.querySelector('.popup__features').textContent = obj.offer.features;
+  markupElement.querySelector('.popup__description').textContent = obj.offer.description;
 
-  markupElement.querySelector('.popup__title').textContent = array.offer.title;
-  markupElement.querySelector('.popup__text--address').textContent = array.offer.address;
-  // Задание: Выведите адрес offer.address в блок .popup__text--address
-  // "address": строка, адрес предложения, представляет собой запись вида "{{location.x}}, {{location.y}}", например, "600, 350"
-  // Что, адрес это просто два числа вместо блока текста?
+  var img = document.querySelector('.popup__photo');
+  var fragment = document.createDocumentFragment();
 
-  markupElement.querySelector('.popup__text--price').textContent = array.offer.price + '₽/ночь';
-  markupElement.querySelector('.popup__type').textContent = array.offer.type;
-  markupElement.querySelector('.popup__text--capacity').textContent = array.offer.rooms + ' комнаты для ' + array.offer.guests + ' гостей';
-  markupElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + array.offer.checkin + ', выезд до ' + array.offer.checkout;
-  markupElement.querySelector('.popup__features').textContent = array.offer.features;
-  markupElement.querySelector('.popup__description').textContent = array.offer.description;
+  for (var i = 0; i < obj.offer.photos.length; i++) {
+    img.src = obj.offer.photos[i];
+    fragment.appendChild(img);
+  };
+  markupElement.querySelector('.popup__photos').appendChild = fragment;
 
-  // В этом случае программма на каждой итерации цикла будет менять адрес фото,
-  // насколько я понимаю, а вовсе не добавлять новое.
-  markupElement.querySelector('.popup__photos').children.src = array.offer.photos;
-  // Значит нужен appendChild
-  /*
-   Вариант решения.
-
-  задаем переменную. в которую будем отрисовывать пустой блок с фото на каждой итерации.
-  С учетом того что фото только три, надо задать цикл
-
-  for (var i = 0; i < PHOTOS.length; i++) {
-    var markupPhoto = document.querySelector('.popup__photo')
-    записываем в переменную разметку фотографии
-
-    var markupPhotoAll = document.querySelector('.popup__photos').appendChild(markupPhoto)
-    теперь у нас есть переменная, которая содержит в себе разметку всех трех(в данном случае)
-    фотографий, уже лежащих в нужном блоке
-  }
-
-  Вот теперь можем добавить в src данные, полученные из объекта
-
-  markupPhotoAll.children.src = array.offer.photos;
-
-  Что будет происходить на каждой итерации большого цикла?
-  На каждой итерации программа будет создавать блок, у которого внутри три блока с фото.
-  И адреса фото будут рандомно выбираться из массива. Итого будет 8(в данном случае) блоков по три в каждом.
-*/
-
-  markupElement.querySelector('.popup__avatar').src= array.author.avatar;
-  markupElement.querySelector('.map__pin').style.left = (xCoordinate - (PIN_SIZE / 2)); top: (yCoordinate - PIN_SIZE);
-  markupElement.querySelector('.map__pin').style.top = left: (xCoordinate - (PIN_SIZE / 2)); top: (yCoordinate - PIN_SIZE);
-  /*
-  Здесь должно быть так, я думаю
-  markupElement.querySelector('.map__pin').style.left = xCoordinate - (PIN_SIZE / 2);
-  markupElement.querySelector('.map__pin').style.top = yCoordinate - PIN_SIZE;
-  но стоит мне убрать подсвеченное двоеточие в строке 175, как линтер обводит вообще весь код красным
-  что это значит?
-  */
-  markupElement.querySelector('.map__pin').src = array.author.avatar;
-  markupElement.querySelector('.map__pin').alt = array.offer.title;
+  markupElement.querySelector('.popup__avatar').src= obj.author.avatar;
   return markupElement;
 };
 
+// отрисовка карточки
+var renderCardMarkup = function(markup) {
+  var data = generateData();
+  var fragment = document.createDocumentFragment();
+  for (var i = 0; i < obj.author.avatar.length; i++) {
+    var markup = generateMarkup(data[i]);
+    var cardMarkup = fragment.appendChild(cardMarkup);
+  }
+  return cardMarkup;
+};
 
-// Код программы
-document.querySelector('.map').classList.remove('map--faded');
+// функция создания метки
+var createPinMarkup = function(obj) {
+  var pin = document.querySelector('map__pin');
+  pin.style.left = obj.location.x - (PIN_SIZE / 2);
+  pin.style.top = obj.location.y - PIN_SIZE;
+  pin.img.src = obj.author.avatar;
+  pin.alt.textContent = obj.offer.title;
 
-var adverts = generateObj();
+  var onClick = function() {
+        var card = createCardMarkup(obj);
+        renderCardMarkup(card);
+    };
+    pin.addEventListener("click", onClick);
+    return pin;
+};
 
-var blockForAdvert = document.querySelector('.map__pins');
 
-var fragment = document.createDocumentFragment();
+// Подготовка страницы
 
-for (var i = 0; i < ARRAY_LENGTH; i++) {
-  var advertMarkup = generateMarkup(adverts[i]);
-  fragment.appendChild(advertMarkup);
+var data = generateData();
+
+for (var i = 0; i < data.length; i++) {
+    var pin = createPinMarkup(data[i]);
+    fragment.appendChild(pin);
 }
+
+map.appendChild(fragment)
+
+document.querySelector('.map').classList.remove('map--faded');
 
 var blockWithAdvert = blockForAdvert.appendChild(fragment);
 
