@@ -1,3 +1,4 @@
+ eslint-disable no-use-before-define
 // Константы
 
 var TITLES = [
@@ -56,8 +57,6 @@ var placeNames = {
   bungalo: 'Бунгало',
 };
 
-var x = getRandomNumberFromInterval(COORDINATES.left, COORDINATES.right);
-var y = getRandomNumberFromInterval(COORDINATES.top, COORDINATES.bottom);
 
 var getRandomNumberFromInterval = function(min, max) {
   var randomNumber = min + Math.random() * (max + 1 - min);
@@ -71,13 +70,11 @@ var getRandomArrayItem = function(array) {
 };
 
 // функция сортировки элементов массива в случайном порядке
-var getMixedArray = function (a, b, array) {
-  var a = array[i];
-  var b = array[i + 1];
+var getMixedArray = function () {
   return Math.floor(Math.random() - 0.5);
 }
 
-// получаем случайную длину массива, для features
+// функция получения случайной длинны массива, для features
 var getRandomLenghtArray = function(array) {
   var firstArrayElement = getRandomNumberFromInterval(0, array.length - 1)
   var lastArrayElement = getRandomNumberFromInterval(0, array.length - 1)
@@ -85,41 +82,120 @@ var getRandomLenghtArray = function(array) {
   return arrayRandomLength;
 };
 
-// получаем наименование жилья по типу, для type
+// функция получения наименования по типу жилья, для type
 var getPlaseName = function(array1, array2) {
   var type = getRandomArrayItem(array1);
   var name = array2[type];
   return name;
 }
 
+
+/*
+Логика программы:
+1) Нагенерировать данные путем создания массива из восьми объектов: каждый объект описывает пин, карточку и аватар.
+2) Создать DOM-элемент - пин:
+  - найти шаблон, результат записать в переменную
+  - клонировать шаблон, результат записать в переменную
+  - заполнить шаблон пина данными из объекта (написать функцию).
+3) Отрисовать все пины в соответствующий блок на странице:
+  - запустить функцию заполнения шаблона с пином данными,
+  - результат записать во фрагмент,
+  - вставить фрагмент в разметку.
+4) Создать DOM-элемент - карточку:
+  - найти шаблон карточки,
+  - клонировать шаблон,
+  - заполнить шаблон данными из объекта, написать функцию,
+5) Отрисовать одну карточку на страницу:
+  - запустить функцию,
+  - вставить полученный шаблон в разметку
+*/
+
+
+// Выполнение
+
+// Функция генерации данных.
 var generateData = function() {
+  var x = getRandomNumberFromInterval(COORDINATES.left, COORDINATES.right);
+  var y = getRandomNumberFromInterval(COORDINATES.top, COORDINATES.bottom);
   var array = [];
   for (var i = 0; i < OBJECTS_QUANTITY; i++) {
-    var obj = {};
-    obj.author.avatar =
-      'img/avatars/user' +
-      (i + 1 < 10) ? '0' : '' +
-      (i + 1) +
-      '.png';
-    obj.offer.title = getRandomArrayItem(TITLES);
-    obj.offer.address = x + ', ' + y;
-    obj.offer.price = getRandomNumberFromInterval(1000, 1000000);
-    obj.offer.type = getRandomArrayItem(getPlaseName(plaseTypes, placeNames));
-    obj.offer.rooms = getRandomNumberFromInterval(1, 5);
-    obj.offer.guests = getRandomNumberFromInterval(1, 3);
-    obj.offer.checkin = getRandomArrayItem(CHECKIN_CHECKOUT);
-    obj.offer.checkout = getRandomArrayItem(CHECKIN_CHECKOUT);
-    obj.offer.features = getRandomLenghtArray(FEATURES);
-    obj.offer.description = '';
-    obj.offer.photos = PHOTOS.slice().sort(getMixedArray);
-    obj.location.x = x;
-    obj.location.y = y;
+    var obj = {
+      author: {
+        avatar: 'img/avatars/user' +
+                (i + 1 < 10) ? '0' : '' +
+                (i + 1) +
+                '.png',
+      },
+      offer: {
+        title: getRandomArrayItem(TITLES),
+        address: x + ', ' + y,
+        price: getRandomNumberFromInterval(1000, 1000000),
+        type: getRandomArrayItem(getPlaseName(plaseTypes, placeNames)),
+        rooms: getRandomNumberFromInterval(1, 5),
+        guests: getRandomNumberFromInterval(1, 3),
+        checkin: getRandomArrayItem(CHECKIN_CHECKOUT),
+        checkout: getRandomArrayItem(CHECKIN_CHECKOUT),
+        features: getRandomLenghtArray(FEATURES),
+        description: '',
+        photos: PHOTOS.slice().sort(getMixedArray),
+      },
+      location: {
+        x: x,
+        y: y,
+      },
+    };
     array.push(obj);
   }
   return array;
 };
 
-var markupTemplate = document.querySelector('template').content.querySelector('.map__card')
+
+// Создаем пин
+
+// найдем шаблон
+var pinMarkupTemplate = document.querySelector('template').content.querySelector('.map__pin');
+
+// найдем блок, в который будем добавлять новые пины
+var blockForPins = document.querySelector('.map__pins');
+
+// создадим функцию заполнения шаблона данными из объекта
+var generatePinMarkup = function(obj) {
+
+  // склонируем разметку шаблона в переменную
+var pinMarkup = pinMarkupTemplate.cloneNode(true)
+// заполним разметку данными
+  pinMarkup.style.left = obj.location.x - (PIN_SIZE / 2);
+  pinMarkup.style.top = obj.location.y - PIN_SIZE;
+  var img = pinMarkup.querySelector('img');
+  img.src = obj.author.avatar;
+  img.alt.textContent = obj.offer.title;
+  return pinMarkup;
+}
+
+// заполняем разметку данными
+var renderPinMarkup = function() {
+
+  // создадим переменную, в которую запишутся данные (объект)
+  var pinData = generateData();
+
+  // создадим переменную, в которую запишется разметка с данными из объекта
+  var pin = generatePinMarkup(pinData[i])
+
+  // создадим фрагмент, в который будем складывать разметку всех пинов
+  var fragment = document.createDocumentFragment();
+
+  // добавим полученную разметку в переменную через фрагмент
+  return fragment.appendChild(pin);
+}
+
+// запишем в переменную результаты работы функции создания пинов
+var pinFragment = renderPinMarkup();
+
+// выведем полученный результат в разметку страницы
+blockForPins.appendChild(pinFragment);
+
+
+
 
 var createCardMarkup = function(obj) {
   var markupElement = markupTemplate.cloneNode(true);
@@ -158,7 +234,7 @@ var renderCardMarkup = function(markup) {
 
 // функция создания метки
 var createPinMarkup = function(obj) {
-  var pin = document.querySelector('map__pin');
+  var pin = document.querySelector('.map__pin');
   pin.style.left = obj.location.x - (PIN_SIZE / 2);
   pin.style.top = obj.location.y - PIN_SIZE;
   pin.img.src = obj.author.avatar;
