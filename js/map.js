@@ -92,22 +92,32 @@ var getPlaseName = function(array1, array2) {
 
 /*
 Логика программы:
-1) Нагенерировать данные путем создания массива из восьми объектов: каждый объект описывает пин, карточку и аватар.
-2) Создать DOM-элемент - пин:
-  - найти шаблон, результат записать в переменную
-  - клонировать шаблон, результат записать в переменную
-  - заполнить шаблон пина данными из объекта (написать функцию).
-3) Отрисовать все пины в соответствующий блок на странице:
-  - запустить функцию заполнения шаблона с пином данными,
-  - результат записать во фрагмент,
-  - вставить фрагмент в разметку.
+1) Нагенерировать данные путем создания массива из n объектов: каждый объект описывает пин, карточку и аватар.
+
 4) Создать DOM-элемент - карточку:
   - найти шаблон карточки,
   - клонировать шаблон,
   - заполнить шаблон данными из объекта, написать функцию,
+
 5) Отрисовать одну карточку на страницу:
   - запустить функцию,
   - вставить полученный шаблон в разметку
+
+2) Создать DOM-элемент - пин:
+  - найти шаблон, результат записать в переменную
+  - в шаблоне найти блок пина, результат записать в переменную
+  - клонировать блок пина, результат записать в переменную
+  - заполнить блок пина данными из объекта, циклом. На каждый элемент массива создать пин (написать функцию).
+
+3) Навесить на пин обработчик, которому к качестве коллбэка будет передана функция, которая создает карточку и затем отрисовывает ее
+
+
+3) Отрисовать все пины в соответствующий блок на странице:
+  - запустить функцию заполнения шаблона с пином данными,
+  - результат записать во фрагмент,
+  - вставить фрагмент в разметку.
+
+
 */
 
 
@@ -118,7 +128,7 @@ var generateData = function() {
   var x = getRandomNumberFromInterval(COORDINATES.left, COORDINATES.right);
   var y = getRandomNumberFromInterval(COORDINATES.top, COORDINATES.bottom);
   var array = [];
-  for (var i = 0; i < OBJECTS_QUANTITY; i++) {
+  for (var i = 0; i < array.length; i++) {
     var obj = {
       author: {
         avatar: 'img/avatars/user' +
@@ -149,121 +159,107 @@ var generateData = function() {
   return array;
 };
 
+// Создаем карточку
+
+// найдем в шаблоне разметку карточки
+var cardMarkupTemplate = document.querySelector('template').content.querySelector('.map__card');
+
+// функция заполнения разметки карточки данными из объекта
+var createCardMarkup = function(obj) {
+    // клонируем разметку катрочки
+    var markupElement = markupTemplate.cloneNode(true);
+    // заполним разметку данными
+    markupElement.querySelector('.popup__title').textContent = obj.offer.title;
+    markupElement.querySelector('.popup__text--address').textContent = obj.offer.address;
+    markupElement.querySelector('.popup__text--price').textContent = obj.offer.price + ' ₽/ночь';
+    markupElement.querySelector('.popup__type').textContent = obj.offer.type;
+    markupElement.querySelector('.popup__text--capacity').textContent = obj.offer.rooms + ' комнаты для ' + obj.offer.guests + ' гостей';
+    markupElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + obj.offer.checkin + ', выезд до ' + obj.offer.checkout;
+    markupElement.querySelector('.popup__features').textContent = obj.offer.features;
+    markupElement.querySelector('.popup__description').textContent = obj.offer.description;
+    var img = document.querySelector('.popup__photo');
+    var fragment = document.createDocumentFragment();
+    for (var i = 0; i < obj.offer.photos.length; i++) {
+      img.src = obj.offer.photos[i];
+      var images = fragment.appendChild(img);
+    };
+    markupElement.querySelector('.popup__photos').appendChild(images);
+    markupElement.querySelector('.popup__avatar').src = obj.author.avatar;
+  return markupElement;
+};
+
+// функция отрисовки карточки
+var renderCardMarkup = function(markup) {
+  // вызываем функцию генерации объектов
+  var dataForCard = generateData();
+  var fragment = document.createDocumentFragment();
+  for (var i = 0; i < ???; i++) {
+    var cardMarkup = createCardMarkup(dataForCard[i]);
+    var cardMarkupFragment = fragment.appendChild(cardMarkup);
+  }
+  return cardMarkupFragment;
+};
+
+// функция добавления карточки на страницу
+var insertCard = function(card) {
+  // найдем место в разметке, куда добавим карточки
+  var blockForCard = document.querySelector('.map');
+  // найдем блок, перед которым должна быть разметка с карточками
+  var blockAfterСard = document.querySelector('.map__filters-container');
+  // добавим карточки в положенное место на странице
+  blockForCard.insertBefore(card, blockAfterCard);
+};
+
 
 // Создаем пин
 
-// найдем шаблон
+// найдем в шаблоне разметку пина
 var pinMarkupTemplate = document.querySelector('template').content.querySelector('.map__pin');
 
-// найдем блок, в который будем добавлять новые пины
-var blockForPins = document.querySelector('.map__pins');
-
-// создадим функцию заполнения шаблона данными из объекта
+// функция заполнения разметки пина данными из объекта,
+// и создания по клику на пин карточки
 var generatePinMarkup = function(obj) {
-
-  // склонируем разметку шаблона в переменную
-var pinMarkup = pinMarkupTemplate.cloneNode(true)
-// заполним разметку данными
+  // клонируем разметку пина
+  var pinMarkup = pinMarkupTemplate.cloneNode(true)
+  // заполним разметку пина данными из объекта
   pinMarkup.style.left = obj.location.x - (PIN_SIZE / 2);
   pinMarkup.style.top = obj.location.y - PIN_SIZE;
   var img = pinMarkup.querySelector('img');
   img.src = obj.author.avatar;
   img.alt.textContent = obj.offer.title;
-  return pinMarkup;
-}
-
-// заполняем разметку данными
-var renderPinMarkup = function() {
-
-  // создадим переменную, в которую запишутся данные (объект)
-  var pinData = generateData();
-
-  // создадим переменную, в которую запишется разметка с данными из объекта
-  var pin = generatePinMarkup(pinData[i])
-
-  // создадим фрагмент, в который будем складывать разметку всех пинов
-  var fragment = document.createDocumentFragment();
-
-  // добавим полученную разметку в переменную через фрагмент
-  return fragment.appendChild(pin);
-}
-
-// запишем в переменную результаты работы функции создания пинов
-var pinFragment = renderPinMarkup();
-
-// выведем полученный результат в разметку страницы
-blockForPins.appendChild(pinFragment);
-
-
-
-
-var createCardMarkup = function(obj) {
-  var markupElement = markupTemplate.cloneNode(true);
-  markupElement.querySelector('.popup__title').textContent = obj.offer.title;
-  markupElement.querySelector('.popup__text--address').textContent = obj.offer.address;
-  markupElement.querySelector('.popup__text--price').textContent = obj.offer.price + ' ₽/ночь';
-  markupElement.querySelector('.popup__type').textContent = obj.offer.type;
-  markupElement.querySelector('.popup__text--capacity').textContent = obj.offer.rooms + ' комнаты для ' + obj.offer.guests + ' гостей';
-  markupElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + obj.offer.checkin + ', выезд до ' + obj.offer.checkout;
-  markupElement.querySelector('.popup__features').textContent = obj.offer.features;
-  markupElement.querySelector('.popup__description').textContent = obj.offer.description;
-
-  var img = document.querySelector('.popup__photo');
-  var fragment = document.createDocumentFragment();
-
-  for (var i = 0; i < obj.offer.photos.length; i++) {
-    img.src = obj.offer.photos[i];
-    fragment.appendChild(img);
-  };
-  markupElement.querySelector('.popup__photos').appendChild = fragment;
-
-  markupElement.querySelector('.popup__avatar').src= obj.author.avatar;
-  return markupElement;
-};
-
-// отрисовка карточки
-var renderCardMarkup = function(markup) {
-  var data = generateData();
-  var fragment = document.createDocumentFragment();
-  for (var i = 0; i < obj.author.avatar.length; i++) {
-    var markup = generateMarkup(data[i]);
-    var cardMarkup = fragment.appendChild(cardMarkup);
-  }
-  return cardMarkup;
-};
-
-// функция создания метки
-var createPinMarkup = function(obj) {
-  var pin = document.querySelector('.map__pin');
-  pin.style.left = obj.location.x - (PIN_SIZE / 2);
-  pin.style.top = obj.location.y - PIN_SIZE;
-  pin.img.src = obj.author.avatar;
-  pin.alt.textContent = obj.offer.title;
-
+  // функция создания и отрисовки карточки по клику на пин
   var onClick = function() {
-        var card = createCardMarkup(obj);
-        renderCardMarkup(card);
+      var cardMarkup = createCardMarkup(obj);
+      var cardMarkupRender = renderCardMarkup(cardMarkup);
+      var cardMarkupFragment = insertCard(cardMarkupRender);
+
     };
     pin.addEventListener("click", onClick);
     return pin;
-};
-
-
-// Подготовка страницы
-
-var data = generateData();
-
-for (var i = 0; i < data.length; i++) {
-    var pin = createPinMarkup(data[i]);
-    fragment.appendChild(pin);
 }
 
-map.appendChild(fragment)
+// функция отрисовки пина
+var renderPinMarkup = function() {
+  // вызываем функцию генерации объектов
+  var dataForPin = generateData();
+  // создадим фрагмент, в который будем складывать разметку всех пинов
+  var fragment = document.createDocumentFragment();
+  for (var i = 0; i < ???; i++) {
+    // создадим переменную, в которую запишется разметка с данными из объекта
+    var pinMarkup = generatePinMarkup(dataForPin[i]);
+    // добавим полученную разметку в переменную через фрагмент
+    var pinMarkupFragment = fragment.appendChild(pinMarkup);
+  }
+  return pinMarkupFragment;
+};
+
+// запишем в переменную результаты работы функции создания пинов
+var pin = renderPinMarkup();
+
+// найдем блок пина, в который отрисуем пины
+var blockForPins = document.querySelector('.map__pins');
+
+// выведем полученный результат в разметку страницы
+blockForPins.appendChild(pin);
 
 document.querySelector('.map').classList.remove('map--faded');
-
-var blockWithAdvert = blockForAdvert.appendChild(fragment);
-
-var blockAfterAdvert = document.querySelector('.map__filters-container');
-
-document.querySelector('.map').insertBefore(blockWithAdvert, blockAfterAdvert);
