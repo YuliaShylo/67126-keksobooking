@@ -1,16 +1,6 @@
- eslint-disable no-use-before-define
-// Константы
+'use strict';
 
-var TITLES = [
-  'Большая уютная квартира',
-  'Маленькая неуютная квартира',
-  'Огромный прекрасный дворец',
-  'Маленький ужасный дворец',
-  'Красивый гостевой домик',
-  'Некрасивый негостеприимный домик',
-  'Уютное бунгало далеко от моря',
-  'Неуютное бунгало по колено в воде',
-];
+var ESC_KEY_CODE = 27;
 
 var CHECKIN_CHECKOUT = [
   '12:00',
@@ -38,18 +28,28 @@ var COORDINATES = {
   right: 900,
   top: 150,
   bottom: 500,
-}
+};
 
-var PIN_SIZE = 40;
+var TITLES = [
+  'Большая уютная квартира',
+  'Маленькая неуютная квартира',
+  'Огромный прекрасный дворец',
+  'Маленький ужасный дворец',
+  'Красивый гостевой домик',
+  'Некрасивый негостеприимный домик',
+  'Уютное бунгало далеко от моря',
+  'Неуютное бунгало по колено в воде',
+];
 
-var OBJECTS_QUANTITY = 8;
+var FAKE_DATA_NUMBER = 8;
 
-var plaseTypes = [
+var placeTypes = [
   'palace',
   'flat',
   'house',
   'bungalo',
 ];
+
 var placeNames = {
   palace: 'Дворец',
   flat: 'Квартира',
@@ -57,82 +57,42 @@ var placeNames = {
   bungalo: 'Бунгало',
 };
 
+var markupTemplate = document.querySelector('template').content;
+var pinMarkupTemplate = markupTemplate.querySelector('.map__pin');
+var cardMarkupTemplate = markupTemplate.querySelector('.map__card');
+var mapPins = document.querySelector('.map__pins');
+var map = document.querySelector('.map');
+var mapFilters = document.querySelector('.map__filters-container');
 
-var getRandomNumberFromInterval = function(min, max) {
-  var randomNumber = min + Math.random() * (max + 1 - min);
-    randomNumber = Math.floor(randomNumber);
-    return randomNumber;
+var getRandomNumberFromInterval = function (min, max) {
+  return Math.floor(min + Math.random() * (max + 1 - min));
 };
 
-var getRandomArrayItem = function(array) {
-    var index = getRandomNumberFromInterval(0, array.length - 1);
-    return array[index];
+var getRandomArrayItem = function (array) {
+  var index = getRandomNumberFromInterval(0, array.length - 1);
+  return array[index];
 };
 
-// функция сортировки элементов массива в случайном порядке
-var getMixedArray = function () {
-  return Math.floor(Math.random() - 0.5);
-}
-
-// функция получения случайной длинны массива, для features
-var getRandomLenghtArray = function(array) {
-  var firstArrayElement = getRandomNumberFromInterval(0, array.length - 1)
-  var lastArrayElement = getRandomNumberFromInterval(0, array.length - 1)
+var getRandomLenghtArray = function (array) {
+  var firstArrayElement = getRandomNumberFromInterval(0, array.length - 1);
+  var lastArrayElement = getRandomNumberFromInterval(0, array.length - 1);
   var arrayRandomLength = array.slice(firstArrayElement, lastArrayElement);
   return arrayRandomLength;
 };
 
-// функция получения наименования по типу жилья, для type
-var getPlaseName = function(array1, array2) {
-  var type = getRandomArrayItem(array1);
-  var name = array2[type];
-  return name;
-}
+var getMixedArray = function () {
+  return Math.floor(Math.random() - 0.5);
+};
 
-
-/*
-Логика программы:
-1) Нагенерировать данные путем создания массива из n объектов: каждый объект описывает пин, карточку и аватар.
-
-4) Создать DOM-элемент - карточку:
-  - найти шаблон карточки,
-  - клонировать шаблон,
-  - заполнить шаблон данными из объекта, написать функцию,
-
-5) Отрисовать одну карточку на страницу:
-  - запустить функцию,
-  - вставить полученный шаблон в разметку
-
-2) Создать DOM-элемент - пин:
-  - найти шаблон, результат записать в переменную
-  - в шаблоне найти блок пина, результат записать в переменную
-  - клонировать блок пина, результат записать в переменную
-  - заполнить блок пина данными из объекта, циклом. На каждый элемент массива создать пин (написать функцию).
-
-3) Навесить на пин обработчик, которому к качестве коллбэка будет передана функция, которая создает карточку и затем отрисовывает ее
-
-
-3) Отрисовать все пины в соответствующий блок на странице:
-  - запустить функцию заполнения шаблона с пином данными,
-  - результат записать во фрагмент,
-  - вставить фрагмент в разметку.
-
-
-*/
-
-
-// Выполнение
-
-// Функция генерации данных.
-var generateData = function() {
-  var x = getRandomNumberFromInterval(COORDINATES.left, COORDINATES.right);
-  var y = getRandomNumberFromInterval(COORDINATES.top, COORDINATES.bottom);
+var generateData = function () {
   var array = [];
-  for (var i = 0; i < array.length; i++) {
+  for (var i = 0; i < FAKE_DATA_NUMBER; i++) {
+    var x = getRandomNumberFromInterval(COORDINATES.left, COORDINATES.right);
+    var y = getRandomNumberFromInterval(COORDINATES.top, COORDINATES.bottom);
     var obj = {
       author: {
         avatar: 'img/avatars/user' +
-                (i + 1 < 10) ? '0' : '' +
+                ((i + 1 < 10) ? '0' : '') +
                 (i + 1) +
                 '.png',
       },
@@ -140,7 +100,7 @@ var generateData = function() {
         title: getRandomArrayItem(TITLES),
         address: x + ', ' + y,
         price: getRandomNumberFromInterval(1000, 1000000),
-        type: getRandomArrayItem(getPlaseName(plaseTypes, placeNames)),
+        type: getRandomArrayItem(placeTypes),
         rooms: getRandomNumberFromInterval(1, 5),
         guests: getRandomNumberFromInterval(1, 3),
         checkin: getRandomArrayItem(CHECKIN_CHECKOUT),
@@ -159,107 +119,98 @@ var generateData = function() {
   return array;
 };
 
-// Создаем карточку
-
-// найдем в шаблоне разметку карточки
-var cardMarkupTemplate = document.querySelector('template').content.querySelector('.map__card');
-
-// функция заполнения разметки карточки данными из объекта
-var createCardMarkup = function(obj) {
-    // клонируем разметку катрочки
-    var markupElement = markupTemplate.cloneNode(true);
-    // заполним разметку данными
-    markupElement.querySelector('.popup__title').textContent = obj.offer.title;
-    markupElement.querySelector('.popup__text--address').textContent = obj.offer.address;
-    markupElement.querySelector('.popup__text--price').textContent = obj.offer.price + ' ₽/ночь';
-    markupElement.querySelector('.popup__type').textContent = obj.offer.type;
-    markupElement.querySelector('.popup__text--capacity').textContent = obj.offer.rooms + ' комнаты для ' + obj.offer.guests + ' гостей';
-    markupElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + obj.offer.checkin + ', выезд до ' + obj.offer.checkout;
-    markupElement.querySelector('.popup__features').textContent = obj.offer.features;
-    markupElement.querySelector('.popup__description').textContent = obj.offer.description;
-    var img = document.querySelector('.popup__photo');
-    var fragment = document.createDocumentFragment();
-    for (var i = 0; i < obj.offer.photos.length; i++) {
-      img.src = obj.offer.photos[i];
-      var images = fragment.appendChild(img);
-    };
-    markupElement.querySelector('.popup__photos').appendChild(images);
-    markupElement.querySelector('.popup__avatar').src = obj.author.avatar;
-  return markupElement;
-};
-
-// функция отрисовки карточки
-var renderCardMarkup = function(markup) {
-  // вызываем функцию генерации объектов
-  var dataForCard = generateData();
-  var fragment = document.createDocumentFragment();
-  for (var i = 0; i < ???; i++) {
-    var cardMarkup = createCardMarkup(dataForCard[i]);
-    var cardMarkupFragment = fragment.appendChild(cardMarkup);
+var closeCard = function () {
+  var openCard = document.querySelector('.map__card');
+  if (openCard) {
+    openCard.remove();
   }
-  return cardMarkupFragment;
 };
 
-// функция добавления карточки на страницу
-var insertCard = function(card) {
-  // найдем место в разметке, куда добавим карточки
-  var blockForCard = document.querySelector('.map');
-  // найдем блок, перед которым должна быть разметка с карточками
-  var blockAfterСard = document.querySelector('.map__filters-container');
-  // добавим карточки в положенное место на странице
-  blockForCard.insertBefore(card, blockAfterCard);
+var popupCloseKeydownHandler = function (evt) {
+  if (evt.keyCode === ESC_KEY_CODE) {
+    closeCard();
+    document.removeEventListener('keydown', popupCloseKeydownHandler);
+  }
 };
 
+var popupCloseClickHandler = function () {
+  closeCard();
+  document.removeEventListener('keydown', popupCloseKeydownHandler);
+};
 
-// Создаем пин
+var createCardMarkup = function (dataObj) {
+  var card = cardMarkupTemplate.cloneNode(true);
 
-// найдем в шаблоне разметку пина
-var pinMarkupTemplate = document.querySelector('template').content.querySelector('.map__pin');
+  card.querySelector('.popup__title').textContent = dataObj.offer.title;
+  card.querySelector('.popup__text--address').textContent = dataObj.offer.address;
+  card.querySelector('.popup__text--price').textContent = dataObj.offer.price + ' ₽/ночь';
+  card.querySelector('.popup__type').textContent = placeNames[dataObj.offer.type];
+  card.querySelector('.popup__text--capacity').textContent = dataObj.offer.rooms + ' комнаты для ' + dataObj.offer.guests + ' гостей';
+  card.querySelector('.popup__text--time').textContent = 'Заезд после ' + dataObj.offer.checkin + ', выезд до ' + dataObj.offer.checkout;
 
-// функция заполнения разметки пина данными из объекта,
-// и создания по клику на пин карточки
-var generatePinMarkup = function(obj) {
-  // клонируем разметку пина
-  var pinMarkup = pinMarkupTemplate.cloneNode(true)
-  // заполним разметку пина данными из объекта
-  pinMarkup.style.left = obj.location.x - (PIN_SIZE / 2);
-  pinMarkup.style.top = obj.location.y - PIN_SIZE;
-  var img = pinMarkup.querySelector('img');
-  img.src = obj.author.avatar;
-  img.alt.textContent = obj.offer.title;
-  // функция создания и отрисовки карточки по клику на пин
-  var onClick = function() {
-      var cardMarkup = createCardMarkup(obj);
-      var cardMarkupRender = renderCardMarkup(cardMarkup);
-      var cardMarkupFragment = insertCard(cardMarkupRender);
+  var features = card.querySelector('.popup__features');
+  var featuresItems = features.querySelectorAll('.popup__feature');
 
-    };
-    pin.addEventListener("click", onClick);
-    return pin;
+  for (var i = 0; i < featuresItems.length; i++) {
+    for (var j = 0; j < dataObj.offer.features.length; j++) {
+      var hasClass = featuresItems[i].classList.contains('popup__feature--' + dataObj.offer.features[i]
+      );
+      if (!hasClass) {
+        featuresItems[i].remove();
+      }
+    }
+  }
+
+  card.querySelector('.popup__description').textContent = dataObj.offer.description;
+
+  var photos = card.querySelector('.popup__photos');
+  var photoTemplate = card.querySelector('.popup__photo');
+  var fragmentForPhotos = document.createDocumentFragment();
+
+  for (var k = 0; k < dataObj.offer.photos.length; k++) {
+    var photo = photoTemplate.cloneNode(true);
+    photo.src = dataObj.offer.photos[k];
+    fragmentForPhotos.appendChild(photo);
+  }
+
+  photoTemplate.remove();
+  photos.appendChild(fragmentForPhotos);
+  card.querySelector('.popup__avatar').src = dataObj.author.avatar;
+
+  document.addEventListener('keydown', popupCloseKeydownHandler);
+  card.querySelector('.popup__close').addEventListener('click', popupCloseClickHandler);
+
+  return card;
+};
+
+var generatePinMarkup = function (dataObj) {
+  var pin = pinMarkupTemplate.cloneNode(true);
+  var img = pin.querySelector('img');
+
+  pin.style.left = dataObj.location.x + 'px';
+  pin.style.top = dataObj.location.y + 'px';
+  img.src = dataObj.author.avatar;
+  img.alt = dataObj.offer.title;
+
+  pin.addEventListener('click', function () {
+    var card = createCardMarkup(dataObj);
+    closeCard();
+    map.insertBefore(card, mapFilters);
+  });
+
+  return pin;
+};
+
+// Код программы
+
+var data = generateData();
+
+var fragment = document.createDocumentFragment();
+
+for (var i = 0; i < data.length; i++) {
+  var pinMarkup = generatePinMarkup(data[i]);
+  fragment.appendChild(pinMarkup);
 }
 
-// функция отрисовки пина
-var renderPinMarkup = function() {
-  // вызываем функцию генерации объектов
-  var dataForPin = generateData();
-  // создадим фрагмент, в который будем складывать разметку всех пинов
-  var fragment = document.createDocumentFragment();
-  for (var i = 0; i < ???; i++) {
-    // создадим переменную, в которую запишется разметка с данными из объекта
-    var pinMarkup = generatePinMarkup(dataForPin[i]);
-    // добавим полученную разметку в переменную через фрагмент
-    var pinMarkupFragment = fragment.appendChild(pinMarkup);
-  }
-  return pinMarkupFragment;
-};
-
-// запишем в переменную результаты работы функции создания пинов
-var pin = renderPinMarkup();
-
-// найдем блок пина, в который отрисуем пины
-var blockForPins = document.querySelector('.map__pins');
-
-// выведем полученный результат в разметку страницы
-blockForPins.appendChild(pin);
-
-document.querySelector('.map').classList.remove('map--faded');
+map.classList.remove('map--faded');
+mapPins.appendChild(fragment);
