@@ -43,6 +43,12 @@ var TITLES = [
 
 var FAKE_DATA_NUMBER = 8;
 
+var PIN_SIZE = 40;
+
+var PIN_TAIL_SHIFT_X = (PIN_SIZE / 2);
+
+var  PIN_TAIL_SHIFT_Y = (PIN_SIZE + 10);
+
 var placeTypes = [
   'palace',
   'flat',
@@ -212,5 +218,37 @@ for (var i = 0; i < data.length; i++) {
   fragment.appendChild(pinMarkup);
 }
 
-map.classList.remove('map--faded');
-mapPins.appendChild(fragment);
+// Добавим атрибут disabled инпутам в форме
+
+var form = document.querySelector('.ad-form');
+
+form.querySelector('input').setAttribute('disabled', '');
+// не сработало. Почему?
+
+// найдем в форме инпут с адресом
+
+var addressInput = document.getElementById('#address');
+
+// Рассчитаем положение метки
+var addressCoords = {
+  x: COORDINATES.left + PIN_TAIL_SHIFT_X,
+  y: COORDINATES.top + PIN_TAIL_SHIFT_Y
+};
+
+// Зададим полю адрес значения еще до обработчика mouseup
+addressInput.setAttribute('value', 'addressCoords.x, addressCoords.y');
+// консоль выдает ошибку. Как иначе задать значение value?
+
+
+// Добавим обработчик события mouseup
+
+var mapPin = document.querySelector('.map__pin--main');
+
+mapPin.addEventListener('mouseup', function () {
+  map.classList.remove('map--faded');
+  form.classList.remove('ad-form--disabled');
+  mapPins.appendChild(fragment);
+  form.querySelector('input').removeAttribute('disabled', '');
+  addressInput.setAttribute('value', 'addressCoords.x, addressCoords.y');
+});
+
