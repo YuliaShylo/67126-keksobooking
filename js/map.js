@@ -219,15 +219,16 @@ for (var i = 0; i < data.length; i++) {
 }
 
 // Добавим атрибут disabled инпутам в форме
-
 var form = document.querySelector('.ad-form');
 
-form.querySelector('input').setAttribute('disabled', '');
-// не сработало. Почему?
+var fieldsets = form.querySelectorAll('fieldset');
+
+for (var f = 0; f < fieldsets.length; f++) {
+  fieldsets[f].disabled = true;
+}
 
 // найдем в форме инпут с адресом
-
-var addressInput = document.getElementById('#address');
+var addressInput = document.getElementById('address');
 
 // Рассчитаем положение метки
 var addressCoords = {
@@ -235,10 +236,11 @@ var addressCoords = {
   y: COORDINATES.top + PIN_TAIL_SHIFT_Y
 };
 
-// Зададим полю адрес значения еще до обработчика mouseup
-addressInput.setAttribute('value', 'addressCoords.x, addressCoords.y');
-// консоль выдает ошибку. Как иначе задать значение value?
+// запишем значение атрибута в переменную
+var addressInputValue = addressCoords.x + ', ' + addressCoords.y;
 
+// Зададим полю адрес значения еще до обработчика mouseup
+addressInput.value = addressInputValue;
 
 // Добавим обработчик события mouseup
 
@@ -248,7 +250,9 @@ mapPin.addEventListener('mouseup', function () {
   map.classList.remove('map--faded');
   form.classList.remove('ad-form--disabled');
   mapPins.appendChild(fragment);
-  form.querySelector('input').removeAttribute('disabled', '');
-  addressInput.setAttribute('value', 'addressCoords.x, addressCoords.y');
+  for (var v = 0; v < fieldsets.length; v++) {
+    fieldsets[v].disabled = false;
+  }
+  addressInput.value = addressInputValue;
 });
 
