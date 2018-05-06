@@ -256,3 +256,68 @@ mapPin.addEventListener('mouseup', function () {
   addressInput.value = addressInputValue;
 });
 
+
+// Модуль4, задание2
+
+// найдем в форме заголовок и установим мин и макс длину, и обязательное поле
+
+var title = document.getElementById('name');
+// как проще найти нужный инпут?
+
+title.required = true;
+// валидатор ругается. Что не так?
+title.min = 30;
+//  как задать мин количество символов?
+title.maxlength = 100;
+
+// найдем в форме цену за ночь и установим необходимые атрибуты
+
+var pricePerNight = document.getElementById('price');
+
+pricePerNight.required = true;
+pricePerNight.max = 1000000;
+
+// установим для типа жилья минимальное значение цены
+var minPrices = [
+  '0',
+  '1000',
+  '5000',
+  '10000',
+];
+
+// найдем в форме типы жилья
+var types = document.getElementById('type');
+
+// поменяем местами опции в разметке
+form.insertBefore(types[2], types[1]);
+
+// ограничим мин цену при вводе
+for (var t = 0; t > types.length; t++) {
+  for (var p = 0; p > minPrices.length; p++) {
+    if (types[t]) {
+      pricePerNight.min = minPrices[p];
+      pricePerNight.placeholder = minPrices[p];
+
+    }
+  }
+}
+// что-то слишком горомоздко... и не работает
+
+// запретим редактирование позиции метки
+addressInput.readonly = true;
+// не сработало
+
+// синхронизируем время заезда и выезда
+
+var timeIn = document.getElementById('timein');
+
+var timeOut = document.getElementById('timeout');
+
+for (var n = 0; n < timeIn.length; n++) {
+  if (timeIn[n]) {
+    timeOut[n].selected = true;
+  }
+}
+// не сработало
+
+// синхронизацию количества комнат и реализацию отправки формы еще не делала, хочу разробраться с ошибками что выше
